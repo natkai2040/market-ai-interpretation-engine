@@ -55,7 +55,7 @@ def hello():
 @app.post("/interpret/")
 async def interpret(item: MarketplaceItem):
     google_api_key = os.getenv('GOOGLE_API_KEY')
-    client = genai.configure(api_key=google_api_key)
+    client = genai.Client(api_key=google_api_key)
 
     prompt_template = """
         You are an expert in collectibles with a knowledge of market trends.
@@ -134,7 +134,7 @@ def interpret_test():
     }
 
     google_api_key = os.getenv('GOOGLE_API_KEY')
-    client = genai.configure(api_key=google_api_key)
+    client = genai.Client(api_key=google_api_key)
 
     prompt_template = """
         You are an expert in collectibles with a knowledge of market trends.
