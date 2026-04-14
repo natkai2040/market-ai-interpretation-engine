@@ -5,6 +5,4 @@ pyproj
 requests
 typing
 google-genai
-json
-os
 pydantic
