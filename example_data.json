@@ -1,9 +1,0 @@
-{
-    "item_name": "item",
-    "listings": [
-    {"date":"2021-04-01", "listing_type": "sale", "condition":"VG", "description": "", "price":721,"grade":7,"platform":"eBay"},
-    {"date":"2021-05-01", "listing_type": "sale", "condition":"VG", "description": "", "price":963.05,"grade":7,"platform":"eBay"},
-    {"date":"2021-06-01", "listing_type": "sale", "condition":"VG", "description": "", "price":925.11,"grade":7,"platform":"eBay"},
-    {"date":"2021-07-01", "listing_type": "sale", "condition":"VG", "description": "", "price":798,"grade":7,"platform":"eBay"}
-    ]
-}
