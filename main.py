@@ -53,7 +53,8 @@ def hello():
     return {"message": "hello world!"}
 
 @app.post("/interpret/")
-async def interpret(item: MarketplaceItem):
+async def interpret(item_pydantic: MarketplaceItem):
+    item = item_pydantic.model_dump()
     google_api_key = os.getenv('GOOGLE_API_KEY')
     client = genai.Client(api_key=google_api_key)
 
