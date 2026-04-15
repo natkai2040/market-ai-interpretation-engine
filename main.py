@@ -96,7 +96,7 @@ async def interpret(item_pydantic: MarketplaceItem):
 
     response = client.models.generate_content(
         model='gemini-2.5-flash',
-        content=types.Part.from_text(text=prompt),
+        contents=types.Part.from_text(text=prompt),
         config = {
             "response_mime_type": "application/json",
             "response_json_schema": Interpretation.model_json_schema()
