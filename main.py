@@ -173,7 +173,6 @@ def interpret_test():
     prompt = prompt_template.format(listing_data=str(json.dumps(item)))
     print("Received prompt: " + prompt)
 
-    
     response = client.models.generate_content(
         model='gemini-2.5-flash',
         contents=types.Part.from_text(text=prompt),
@@ -184,4 +183,4 @@ def interpret_test():
     )
     client.close()
 
-    return response
+    return prompt
