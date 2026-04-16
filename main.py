@@ -144,7 +144,7 @@ def interpret_test():
         Problem:
         Given the following data which details individual sales of the exact same collectible, generate a summary of the current market value of the collectible with the current price estimate, price range, and price trend. Include evidence, assumptions, limitations, and alternative interpretations in brief, listed format readable to average collectors.
 
-        {{listing_data}}
+        {listing_data}
 
         The values in the JSON correspond to the following:
         Condition: Grade 7, Grade 8, Grade 9
@@ -170,7 +170,7 @@ def interpret_test():
         - Keep the JSON strictly valid.
     """            
     
-    prompt = prompt_template.format(listing_data=str(json.dumps(item)))
+    prompt = prompt_template.format(listing_data=json.dumps(item))
     
     response = client.models.generate_content(
         model='gemini-2.5-flash',
@@ -183,6 +183,3 @@ def interpret_test():
     client.close()
 
     return response
-
-    
-# print(interpret_test())
