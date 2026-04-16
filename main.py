@@ -170,7 +170,9 @@ def interpret_test():
         - Keep the JSON strictly valid.
     """            
     
-    prompt = prompt_template.format(listing_data=json.dumps(item))
+    prompt = prompt_template.format(listing_data=str(json.dumps(item)))
+    print("Received prompt: " + prompt)
+
     
     response = client.models.generate_content(
         model='gemini-2.5-flash',
