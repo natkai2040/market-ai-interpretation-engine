@@ -63,12 +63,12 @@ async def interpret(item_pydantic: MarketplaceItem):
         Solve the following problem, reasoning step-by-step in a structured way. 
 
         Problem:
-        Given the following data which details individual sales of the exact same collectible, generate a summary of the current market value of the collectible with the current price estimate, price range, and price trend. Include evidence, assumptions, limitations, and alternative interpretations in brief, listed format readable to average collectors.
+        Given the following data which details individual sales of the exact same collectible, generate a summary of the current market value of the collectible with an estimate of the current reasonable price range for each existing grade in the data. Include evidence, assumptions, limitations, and alternative interpretations in brief, listed format readable to average collectors.
 
         {listing_data}
 
         The values in the JSON correspond to the following:
-        Condition: Grade 7, Grade 8, Grade 9
+        Condition: G G+ VG VG+ NM M
         Platform: eBay, Discogs, Etsy, Amazon.
         Date: MM-DD-YYYY.
         Actual Sold Price: $USD.
@@ -77,20 +77,26 @@ async def interpret(item_pydantic: MarketplaceItem):
         {{
         "plan": "Describe how you'll solve the problem.",
         "reasoning_steps": ["Step 1...", "Step 2...", "..."],
-        "current_estimate": Number,
-        "current_high_range": Number,
-        "current_low_range": Number,
-        "current_trend": String: "increasing" or "decreasing" or "steady",
-        "evidence": ["Single Evidence Supporting Summary", "...", "Max 3"],
-        "assumptions": ["Single Assumption for Summary", "...", "Max 3"],
-        "limitations": ["Single Limitation of Summary", "...", "Max 3"],
-        "alternative_interpretations": ["Single Alternative explanation", "...", "Max 3"]
+        "grade-price": {
+            "VG": [low_price, high_price],
+            ...
+        },
+        "evidence": ["1 Succinct Evidence Supporting Summary", "...", "Max 3"],
+        "assumptions": ["1 Succinct Assumption for Summary", "...", "Max 3"],
+        "limitations": ["1 Succinct Limitation of Summary", "...", "Max 3"],
+        "alternative_interpretations": ["1 Alternative explanation", "...", "Max 3"]
         }}
 
         Important:
         - Keep the JSON strictly valid.
     
         """
+    
+        # "current_estimate": Number,
+        # "current_high_range": Number,
+        # "current_low_range": Number,
+        # "current_trend": String: "increasing" or "decreasing" or "steady",
+
     
     prompt = prompt_template.format(listing_data=json.dumps(item))
 
