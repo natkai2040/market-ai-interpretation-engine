@@ -16,6 +16,7 @@ GH_PAGES_DOMAIN = os.getenv("GH_PAGES_DOMAIN", "").strip()
 allowed_origins = [
     "http://127.0.0.1:5501",
     "http://localhost:5501",
+    "https://tomwang22.github.io", # GitHub Pages
 ]
 if GH_PAGES_DOMAIN:
     allowed_origins.append(f"https://{GH_PAGES_DOMAIN}")
