@@ -12,9 +12,17 @@ from typing import List, Dict, Optional, Union, Any
 
 app = FastAPI()
 
+GH_PAGES_DOMAIN = os.getenv("GH_PAGES_DOMAIN", "").strip()
+allowed_origins = [
+    "http://127.0.0.1:5501",
+    "http://localhost:5501",
+]
+if GH_PAGES_DOMAIN:
+    allowed_origins.append(f"https://{GH_PAGES_DOMAIN}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # change to your Vercel domain later
+    allow_origins=allowed_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
