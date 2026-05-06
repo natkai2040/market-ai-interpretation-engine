@@ -131,7 +131,7 @@ Output requirements:
             contents=types.Part.from_text(text=prompt),
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_json_schema=Interpretation,
+                response_json_schema=Interpretation.model_json_schema(),
             ),
         )
 
