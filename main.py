@@ -147,7 +147,134 @@ Output requirements:
         return JSONResponse(content=payload)
     finally:
         client.close()
+class ContestRequest(BaseModel):
+    """
+    /contest request: same market data as /interpret, plus the AI's prior
+    interpretation and the user's own interpretation text. The AI will respond
+    to the user's argument and optionally revise its interpretation.
+    """
+    schema_version: int = Field(ge=1)
 
+    market_summary: Dict[str, Any]
+    listings_snippet: Optional[List[Listing]] = None
+
+    item_context: Optional[Dict[str, Any]] = None
+    correlation_id: Optional[str] = None
+    client_capabilities: Optional[Dict[str, Any]] = None
+
+    ai_interpretation: Interpretation          # the AI's prior interpretation
+    user_interpretation: str                   # user's free-text argument
+
+
+class ContestResponse(BaseModel):
+    ai_response: str = Field(
+        description=(
+            "The AI's direct reply to the user's argument — acknowledging what is "
+            "compelling, what is not, and why the interpretation did or did not change."
+        )
+    )
+    interpretation_changed: bool = Field(
+        description="True only if the user's argument genuinely shifted the AI's view."
+    )
+    updated_interpretation: Interpretation = Field(
+        description=(
+            "The AI's revised interpretation. If interpretation_changed is False this "
+            "MUST be identical to the original ai_interpretation that was submitted."
+        )
+    )
+
+
+@app.post("/contest/")
+@app.post("/contest")
+async def contest(req: ContestRequest):
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+    if not google_api_key:
+        return JSONResponse(status_code=500, content={"error": "GOOGLE_API_KEY is not set"})
+
+    client = genai.Client(api_key=google_api_key)
+
+    # Reuse the same normalization for the market data portion
+    market_req = InterpretRequest(
+        schema_version=req.schema_version,
+        market_summary=req.market_summary,
+        listings_snippet=req.listings_snippet,
+        item_context=req.item_context,
+        correlation_id=req.correlation_id,
+        client_capabilities=req.client_capabilities,
+    )
+    normalized_market = normalize_request(market_req)
+
+    prompt = f"""
+You are an expert in collectibles with deep knowledge of market trends.
+
+Context:
+You previously produced an interpretation of marketplace signals for one item.
+A user has now submitted their own interpretation to challenge or refine yours.
+
+Your prior interpretation:
+{json.dumps(req.ai_interpretation.model_dump(mode="python"), indent=2)}
+
+The underlying market data (for reference):
+{json.dumps(normalized_market, indent=2)}
+
+The user's argument:
+\"\"\"{req.user_interpretation}\"\"\"
+
+Your task:
+1. Evaluate the user's argument carefully and critically.
+2. Write an `ai_response` (2–4 sentences) directly addressing the user's points —
+   acknowledge what is compelling, note what is speculative or unsupported, and
+   state clearly whether you are revising your interpretation.
+3. Set `interpretation_changed` to true ONLY if the user raised a genuinely
+   convincing point grounded in the data or credible domain knowledge.
+4. Produce `updated_interpretation`:
+   - If changed: a revised Interpretation that incorporates the user's valid points.
+   - If NOT changed: reproduce the original interpretation exactly as submitted.
+
+Rules:
+- Be critical and honest. Do not change your interpretation just to be agreeable.
+- Do not treat enthusiasm or unsupported assertions as evidence.
+- Output MUST be valid JSON matching the response schema exactly.
+- `current_trend` must be exactly one of: increasing, decreasing, steady.
+""".strip()
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=types.Part.from_text(text=prompt),
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_json_schema=ContestResponse.model_json_schema(),
+            ),
+        )
+
+        try:
+            parsed = ContestResponse.model_validate_json(response.text)
+        except Exception as e:
+            return JSONResponse(
+                status_code=502,
+                content={"error": f"Model JSON parse/validate failed: {e}", "fallback": True},
+            )
+
+        # If the model claims no change but mutated the interpretation anyway,
+        # snap it back to the original to enforce the contract.
+        if not parsed.interpretation_changed:
+            parsed = ContestResponse(
+                ai_response=parsed.ai_response,
+                interpretation_changed=False,
+                updated_interpretation=req.ai_interpretation,
+            )
+
+        payload = {
+            "ai_response": parsed.ai_response,
+            "interpretation_changed": parsed.interpretation_changed,
+            "updated_interpretation": enrich_for_frontend_compat(
+                parsed.updated_interpretation.model_dump(mode="python")
+            ),
+        }
+        return JSONResponse(content=payload)
+    finally:
+        client.close()
 
 def normalize_request(req: InterpretRequest) -> Dict[str, Any]:
     out: Dict[str, Any] = {}
